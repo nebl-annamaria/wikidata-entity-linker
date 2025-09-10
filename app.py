@@ -19,7 +19,10 @@ def extract_text_from_pdf(file, chunk_size=500):
 
 # --- Keyword extraction with KeyBERT ---
 def extract_entities_keybert(text, top_n=5):
-    keywords = kw_model.extract_keywords(text, top_n=top_n)
+    keywords = kw_model.extract_keywords(
+        text, 
+        keyphrase_ngram_range=(1, 3),
+        top_n=top_n)
     return [kw for kw, _ in keywords]
 
 # --- Wikidata search ---
