@@ -19,11 +19,27 @@ def extract_text_from_pdf(file, chunk_size=500):
 
 # --- Keyword extraction with KeyBERT ---
 def extract_entities_keybert(text, top_n=5):
-    keywords = kw_model.extract_keywords(
-        text, 
-        keyphrase_ngram_range=(1, 3),
-        top_n=top_n)
-    return [kw for kw, _ in keywords]
+    keywords_unigrams = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(1, 1),
+        stop_words="english",
+        top_n=top_n
+    )
+    keywords_2grams = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(1, 2),
+        stop_words="english",
+        top_n=top_n
+    )
+    keywords_ngrams = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(2, 3),
+        stop_words="english",
+        top_n=top_n
+    )
+    combined = keywords_unigrams + keywords_2grams + keywords_ngrams
+    return [kw for kw, _ in combined]
+
 
 # --- Wikidata search ---
 def search_wikidata(query, limit=1):
@@ -140,6 +156,10 @@ if uploaded_file and st.button("Start Processing"):
 
         st.success(f"🎉 Found {len(all_entities)} keywords, "
                    f"{len(counts)} unique items!")
+        
+        # Show extracted keywords 
+        keyword_df = pd.DataFrame(counts.items(), columns=["Keyword", "Count"])
+        st.dataframe(keyword_df, use_container_width=True)
 
         results = []
         progress_text = "🔎 Running Wikidata lookups..."
