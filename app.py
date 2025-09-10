@@ -18,28 +18,22 @@ def extract_text_from_pdf(file, chunk_size=500):
     return chunks
 
 # --- Keyword extraction with KeyBERT ---
-def extract_entities_keybert(text, top_n=5):
-    keywords_unigrams = kw_model.extract_keywords(
-        text,
-        keyphrase_ngram_range=(1, 1),
-        stop_words="english",
-        top_n=top_n
-    )
-    keywords_2grams = kw_model.extract_keywords(
-        text,
-        keyphrase_ngram_range=(1, 2),
-        stop_words="english",
-        top_n=top_n
-    )
-    keywords_ngrams = kw_model.extract_keywords(
-        text,
-        keyphrase_ngram_range=(2, 3),
-        stop_words="english",
-        top_n=top_n
-    )
-    combined = keywords_unigrams + keywords_2grams + keywords_ngrams
-    return [kw for kw, _ in combined]
-
+def extract_entities_keybert(text, top_n=5, max_ngram=3):
+    combined = []
+    for n in range(1, max_ngram + 1):
+        kws = kw_model.extract_keywords(
+            text,
+            keyphrase_ngram_range=(n, n),  
+            stop_words="english",
+            top_n=top_n
+        )
+        combined.extend(kws)
+    seen, deduped = set(), []
+    for kw, score in combined:
+        if kw not in seen:
+            deduped.append(kw)
+            seen.add(kw)
+    return deduped
 
 # --- Wikidata search ---
 def search_wikidata(query, limit=1):
